@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: jenkins-deployment
+    labels:
+        app: demo-voting-app 
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            name: jenkins-pod
+            app: demo-voting-app
+    template:
+        metadata:
+            name: jenkins-pod
+            labels:
+                name: jenkins-pod
+                app: demo-voting-app
+        spec:
+            # Add thr server as an NFS volume for thr pod
+            volumes:
+              - name: nfs-volume
+                persistentVolumeClaim:
+                  claimName: nfs-pvc
+
+            # In this container, we'll mount the NFS volume
+            # and write the data to a file inside it.
+            containers:
+              - name: jenkins
+                image: jenkins/jenkins:alpine
+
+                #Ports
+                ports:
+                  - containerPort: 8080
+                  - containerPort: 50000
+
+                #Mount the NFS volume in the container
+                volumeMounts:
+                  - name: nfs-volume
+                    mountPath: /var/jenkins_home
